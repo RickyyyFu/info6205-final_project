@@ -1,0 +1,84 @@
+package edu.neu.info6205.impl;
+
+import java.util.ArrayList;
+import java.util.Random;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import edu.neu.info6205.abs.Chromosome;
+import edu.neu.info6205.abs.MutationHandler;
+
+public class SlideMutationHandler implements MutationHandler {
+
+	public float MUTATION_RATE;
+
+	private static Logger log = Logger.getLogger(SlideMutationHandler.class);
+
+	private static final Random rand = new Random();
+
+	public SlideMutationHandler(float mutationRate) {
+		MUTATION_RATE = mutationRate;
+	}
+
+	@Override
+	public void mutate(Chromosome chrom) {
+		// Type checking
+		if (!(chrom instanceof SlideChromosome)) {
+			log.error("Mutation of illegal chromosome: " + chrom);
+			return;
+		}
+		SlideChromosome slideChrom = (SlideChromosome) chrom;
+		if (log.isEnabledFor(Level.DEBUG))
+			log.debug("Mutating: " + slideChrom);
+
+		// Mutating?
+		if (rand.nextFloat() > MUTATION_RATE) {
+			log.debug("No mutation.");
+			return;
+		}
+
+		// Choosing one of the three mutation types: ADDing, REMOVing or EDITing a move element.
+		int pos;
+		ArrayList<MoveElement> possibleElements = MoveElement.getAllPossibleMoves();
+		switch (rand.nextInt(3)) {
+		// Inserting new move element
+		case 0:
+			log.debug("Inserting new move element...");
+			// Check for size limit
+			if(slideChrom.moves.size()>=SlideChromosome.MAX_CHROM_SIZE)
+				break;
+			// Element picking
+			MoveElement el = possibleElements.get(rand.nextInt(possibleElements.size()));
+
+			// Insert element
+			pos = rand.nextInt(slideChrom.moves.size());
+			slideChrom.moves.add(pos, el);
+			break;
+		// Removing an element
+		case 1:
+			log.debug("Removing move element...");
+			// Check for size limit
+			if(slideChrom.moves.size()<=SlideChromosome.MIN_CHROM_SIZE)
+				break;
+			//Position picking
+			pos = rand.nextInt(slideChrom.moves.size());
+			slideChrom.moves.remove(pos);
+			break;
+		// Modifying an element
+		case 2:
+			log.debug("Modifying move element...");
+			// Element picking
+			MoveElement el2 = possibleElements.get(rand.nextInt(possibleElements.size()));
+
+			// Edit the element
+			pos = rand.nextInt(slideChrom.moves.size());
+			slideChrom.moves.set(pos, el2);
+			break;
+		}
+		if (log.isEnabledFor(Level.DEBUG))
+			log.debug("Mutated successfully in " + slideChrom);
+
+	}
+
+}
